@@ -53,7 +53,7 @@ brews:
     homepage: "https://github.com/tcurdt/kubesops"
     description: "Manage Kubernetes secrets as encrypted dotenv files"
     license: "MIT"
-    folder: Formula
+    directory: Formula
     install: |
       bin.install "kubesops"
     test: |
