@@ -193,20 +193,22 @@ func TestParseDockerConfigJSON_Invalid(t *testing.T) {
 	}
 }
 
-func TestMergeSecretSources_DockerRegistry(t *testing.T) {
-	spec := &SecretSpec{
-		Type: "kubernetes.io/dockerconfigjson",
-		Operations: []Operation{
-			{"docker-server": "https://ghcr.io"},
-			{"docker-username": "testuser"},
-			{"docker-password": "testpass"},
-			{"docker-email": "test@example.com"},
+func TestSecret_ToKubernetesData_DockerRegistry(t *testing.T) {
+	secret := &Secret{
+		Namespace: "test",
+		Name:      "docker-creds",
+		Type:      "kubernetes.io/dockerconfigjson",
+		Data: map[string]string{
+			"docker-server":   "https://ghcr.io",
+			"docker-username": "testuser",
+			"docker-password": "testpass",
+			"docker-email":    "test@example.com",
 		},
 	}
 
-	result, err := MergeSecretSources(spec)
+	result, err := secret.ToKubernetesData()
 	if err != nil {
-		t.Fatalf("MergeSecretSources failed: %v", err)
+		t.Fatalf("ToKubernetesData failed: %v", err)
 	}
 
 	// should have only .dockerconfigjson key
@@ -236,17 +238,7 @@ func TestMergeSecretSources_DockerRegistry(t *testing.T) {
 	}
 }
 
-func TestReverseAndWriteSecretSources_DockerRegistry(t *testing.T) {
-	tmpDir := t.TempDir()
-	envFile := tmpDir + "/.env.docker"
-
-	spec := &SecretSpec{
-		Type: "kubernetes.io/dockerconfigjson",
-		Operations: []Operation{
-			{"envfile": envFile},
-		},
-	}
-
+func TestFromKubernetesData_DockerRegistry(t *testing.T) {
 	// create a docker config JSON (as would come from Kubernetes)
 	auth := base64.StdEncoding.EncodeToString([]byte("testuser:testpass"))
 	config := DockerConfig{
@@ -265,20 +257,14 @@ func TestReverseAndWriteSecretSources_DockerRegistry(t *testing.T) {
 		t.Fatalf("failed to marshal config: %v", err)
 	}
 
-	values := map[string]string{
+	k8sData := map[string]string{
 		".dockerconfigjson": string(jsonData),
 	}
 
-	// reverse and write
-	err = ReverseAndWriteSecretSources(spec, values)
+	// convert from Kubernetes format
+	result, err := FromKubernetesData("kubernetes.io/dockerconfigjson", k8sData)
 	if err != nil {
-		t.Fatalf("ReverseAndWriteSecretSources failed: %v", err)
-	}
-
-	// read the envfile to verify docker-* keys were written
-	result, err := ParseDotenvFile(envFile)
-	if err != nil {
-		t.Fatalf("failed to read envfile: %v", err)
+		t.Fatalf("FromKubernetesData failed: %v", err)
 	}
 
 	// verify all docker keys are present
@@ -292,6 +278,42 @@ func TestReverseAndWriteSecretSources_DockerRegistry(t *testing.T) {
 	for k, v := range expected {
 		if result[k] != v {
 			t.Errorf("expected %s=%s, got %s=%s", k, v, k, result[k])
+		}
+	}
+}
+
+func TestWriteSecretFile_DockerRegistry(t *testing.T) {
+	tmpDir := t.TempDir()
+	envFile := tmpDir + "/docker-creds.env"
+
+	data := map[string]string{
+		"docker-server":   "https://ghcr.io",
+		"docker-username": "testuser",
+		"docker-password": "testpass",
+		"docker-email":    "test@example.com",
+	}
+
+	// write the secret file
+	err := WriteSecretFile(envFile, "kubernetes.io/dockerconfigjson", data)
+	if err != nil {
+		t.Fatalf("WriteSecretFile failed: %v", err)
+	}
+
+	// load the file back
+	secret, err := LoadSecretFile(envFile)
+	if err != nil {
+		t.Fatalf("LoadSecretFile failed: %v", err)
+	}
+
+	// verify type
+	if secret.Type != "kubernetes.io/dockerconfigjson" {
+		t.Errorf("expected type 'kubernetes.io/dockerconfigjson', got '%s'", secret.Type)
+	}
+
+	// verify all keys are present
+	for k, v := range data {
+		if secret.Data[k] != v {
+			t.Errorf("expected %s=%s, got %s=%s", k, v, k, secret.Data[k])
 		}
 	}
 }
