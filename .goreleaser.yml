@@ -19,17 +19,17 @@ builds:
     binary: kubesops
 
 archives:
-  - format: tar.gz
-    name_template: >-
+  - name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    format_overrides:
-      - goos: windows
-        format: zip
+    files:
+      - LICENSE*
+      - README*
+      - CHANGELOG*
 
 checksum:
   name_template: "checksums.txt"
@@ -45,11 +45,10 @@ changelog:
       - "^test:"
       - "^chore:"
 
-brews:
+brew:
   - repository:
       owner: vafer
       name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: "https://github.com/tcurdt/kubesops"
     description: "Manage Kubernetes secrets as encrypted dotenv files"
     license: "MIT"
