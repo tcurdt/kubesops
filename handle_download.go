@@ -39,10 +39,10 @@ func handleDownload(path string) error {
 // downloadFile downloads a single secret based on file path
 func downloadFile(filePath string) error {
 	// parse namespace and secret name from path
-	// expected: secrets/<namespace>/<secretname>.env
+	// namespace is the parent directory, secret name is the filename
 	parts := strings.Split(filepath.Clean(filePath), string(filepath.Separator))
-	if len(parts) < 3 {
-		return fmt.Errorf("invalid secret file path: expected secrets/<namespace>/<secretname>.env, got %s", filePath)
+	if len(parts) < 2 {
+		return fmt.Errorf("invalid secret file path: need at least <namespace>/<secretname>, got %s", filePath)
 	}
 
 	namespace := parts[len(parts)-2]

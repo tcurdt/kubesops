@@ -22,10 +22,10 @@ type Secret struct {
 // handles SOPS decryption, type detection, and env var substitution
 func LoadSecretFile(filePath string) (*Secret, error) {
 	// extract namespace and secret name from path
-	// expected format: secrets/<namespace>/<secretname>
+	// namespace is the parent directory, secret name is the filename
 	parts := strings.Split(filepath.Clean(filePath), string(filepath.Separator))
-	if len(parts) < 3 {
-		return nil, fmt.Errorf("invalid secret file path: expected secrets/<namespace>/<secretname>, got %s", filePath)
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("invalid secret file path: need at least <namespace>/<secretname>, got %s", filePath)
 	}
 
 	namespace := parts[len(parts)-2]
