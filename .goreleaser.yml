@@ -47,7 +47,7 @@ changelog:
 
 brews:
   - repository:
-      owner: vafer
+      owner: tcurdt
       name: homebrew-tap
     homepage: "https://github.com/tcurdt/kubesops"
     description: "Manage Kubernetes secrets as encrypted dotenv files"
