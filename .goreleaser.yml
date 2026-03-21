@@ -51,7 +51,7 @@ homebrew:
       name: homebrew-tap
     homepage: "https://github.com/tcurdt/kubesops"
     description: "Manage Kubernetes secrets as encrypted dotenv files"
-    license: "MIT"
+    license: "Apache-2.0"
     directory: Formula
     install: |
       bin.install "kubesops"
