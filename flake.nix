@@ -18,13 +18,13 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in
       {
-        packages.default = pkgs.buildGoModule.override { go = pkgs.go_1_24; } {
+        packages.default = pkgs.buildGoModule.override { go = pkgs.go_1_25; } {
           pname = "kubesops";
           version = "0.2.0";
 
           src = ./.;
 
-          vendorHash = "sha256-8osrjy8Paz+a/JF+CJjnzM7N4ftayOXtBwN3Ootu4Ko="; # Will need to update this
+          vendorHash = "sha256-Buckhu0503N/+i/0eHfYeYdmTecQFt2TC0zV5Byvbk4=";
 
           ldflags = [
             "-s"
@@ -46,7 +46,7 @@
 
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            go_1_24
+            go_1_25
             gopls
             gotools
             sops
