@@ -45,7 +45,7 @@ changelog:
       - "^test:"
       - "^chore:"
 
-homebrew:
+brews:
   - repository:
       owner: tcurdt
       name: homebrew-tap
