@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 func FromOnsiteSecret(secret *Secret) (map[string]string, error) {
@@ -55,8 +57,14 @@ func upload(path string, force, doit, verbose bool) error {
 		remoteMap, err := FromRemoteSecret(secret.Namespace, secret.Name, secret.Type)
 
 		if err != nil {
-			fmt.Printf("secret %s is missing\n", secretName)
-			differences = 1 // treat missing secret as a change
+			if apierrors.IsNotFound(err) {
+				fmt.Printf("secret %s is missing\n", secretName)
+				differences = 1 // treat missing secret as a change
+			} else {
+				fmt.Printf("warning: failed to read remote secret %s: %v\n", secretName, err)
+				errors = append(errors, fmt.Errorf("%s: %w", secretName, err))
+				continue
+			}
 		} else {
 			differences = compareSecretsRemote(secretName, onsiteMap, remoteMap, verbose)
 		}
